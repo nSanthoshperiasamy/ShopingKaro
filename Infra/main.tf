@@ -1,41 +1,29 @@
 provider "aws" {
-  region = "ap-south-1" # change to your region
+  region     = "ap-south-1"              # Change if needed
+  access_key = "AKIARCTMIVVTZEPERM2M"     # Hardcoded creds (not recommended)
+  secret_key = "3Gw/I0RZKGj9Q2CAhpchVdrvSE9Hvmg12rxs23pS"
 }
 
-resource "aws_instance" "node_app" {
-  ami           = "ami-0f918f7e67a3323f0"   # Ubuntu 22.04 (ap-south-1)
+resource "aws_instance" "shopingkaro" {
+  ami           = "ami-0f918f7e67a3323f0" # Ubuntu 22.04 LTS AMI for ap-south-1
   instance_type = "t2.micro"
-  key_name      = "ubuntutest"                  # <-- your AWS key pair name
-
-  security_groups = [aws_security_group.node_sg.name]
-
-  user_data = <<-EOF
-    #!/bin/bash
-    apt-get update -y
-    apt-get install -y docker.io
-
-    # Enable and start Docker
-    systemctl enable docker
-    systemctl start docker
-
-    # Add ubuntu user to Docker group
-    usermod -aG docker ubuntu
-
-    # Avoid multiple containers: stop & remove any old one
-    docker stop node_app || true
-    docker rm node_app || true
-
-    # Login to Docker Hub
-    echo "${var.docker_pass}" | docker login -u "${var.docker_user}" --password-stdin
-
-    # Pull and run the latest image
-    docker pull ${var.image_name}:${var.image_tag}
-    docker run -d --name node_app -p 80:3000 ${var.image_name}:${var.image_tag}
-  EOF
+  key_name      = "ubuntutest"     # Must exist in AWS
 
   tags = {
-    Name = "NodeApp-Instance"
+    Name = "ShopingKaro-App"
   }
+
+  # Install Docker and run your container
+  user_data = <<-EOF
+              #!/bin/bash
+              apt-get update -y
+              apt-get install -y docker.io
+              systemctl start docker
+              systemctl enable docker
+              docker login -u "YOUR_DOCKER_USERNAME" -p "YOUR_DOCKER_PASSWORD"
+              docker pull YOUR_DOCKER_USERNAME/shopingkaro:latest
+              docker run -d -p 80:3000 YOUR_DOCKER_USERNAME/shopingkaro:latest
+              EOF
 }
 
 resource "aws_security_group" "node_sg" {
