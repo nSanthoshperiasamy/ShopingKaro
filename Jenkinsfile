@@ -1,23 +1,26 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_HUB_USER = "your-dockerhub-username"
-        DOCKER_HUB_PASS = credentials('docker-hub-credentials') // Jenkins credentials
-        IMAGE_NAME = "your-dockerhub-username/shopingkaro"
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'master', url: 'https://github.com/nSanthoshperiasamy/ShopingKaro.git'
+                git branch: 'master',
+                    url: 'https://github.com/nSanthoshperiasamy/ShopingKaro.git',
+                    credentialsId: 'github-creds'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t $IMAGE_NAME:${BUILD_NUMBER} ."
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
+                                                     usernameVariable: 'DOCKER_USER',
+                                                     passwordVariable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                            docker build -t $DOCKER_USER/shopingkaro:latest .
+                        '''
+                    }
                 }
             }
         }
@@ -25,19 +28,25 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    sh "echo $DOCKER_HUB_PASS | docker login -u $DOCKER_HUB_USER --password-stdin"
-                    sh "docker push $IMAGE_NAME:${BUILD_NUMBER}"
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
+                                                     usernameVariable: 'DOCKER_USER',
+                                                     passwordVariable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                            docker push $DOCKER_USER/shopingkaro:latest
+                        '''
+                    }
                 }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                dir('infra') { // store terraform files in repo/infra
-                    sh """
-                    terraform init
-                    terraform apply -auto-approve -var image_tag=${BUILD_NUMBER}
-                    """
+                dir('terraform') {
+                    sh '''
+                        terraform init
+                        terraform apply -auto-approve
+                    '''
                 }
             }
         }
