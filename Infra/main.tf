@@ -3,9 +3,9 @@ provider "aws" {
 }
 
 resource "aws_instance" "node_app" {
-  ami           = "ami-0f5ee92e2d63afc18"   # Ubuntu 22.04 (ap-south-1)
+  ami           = "ami-0f918f7e67a3323f0"   # Ubuntu 22.04 (ap-south-1)
   instance_type = "t2.micro"
-  key_name      = "my-key"                  # <-- your AWS key pair name
+  key_name      = "ubuntutest"                  # <-- your AWS key pair name
 
   security_groups = [aws_security_group.node_sg.name]
 
