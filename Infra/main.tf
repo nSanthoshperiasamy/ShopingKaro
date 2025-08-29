@@ -20,9 +20,9 @@ resource "aws_instance" "shopingkaro" {
               apt-get install -y docker.io
               systemctl start docker
               systemctl enable docker
-              docker login -u "YOUR_DOCKER_USERNAME" -p "YOUR_DOCKER_PASSWORD"
-              docker pull YOUR_DOCKER_USERNAME/shopingkaro:latest
-              docker run -d -p 80:3000 YOUR_DOCKER_USERNAME/shopingkaro:latest
+              docker login -u "santhoshperiasamy1995" -p "MyHornet8082#"
+              docker pull santhoshperiasamy1995/shopingkaro:latest
+              docker run -d -p 80:3000 santhoshperiasamy1995/shopingkaro:latest
               EOF
 }
 
